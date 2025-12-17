@@ -38,7 +38,7 @@ func main() {
 	case *dFlag != "":
 		exitIf(runDirectory(*dFlag))
 	default:
-		log.Fatal("Usage:\n  gosort -r N\n  gosort -i input.txt\n  gosort -d directory")
+		log.Fatal("Usage: gosort -r N | -i input.txt | -d directory")
 	}
 }
 
@@ -49,7 +49,7 @@ func exitIf(err error) {
 }
 
 // -----------------------------
-// Mode -r (Random)
+// -r mode logic
 // -----------------------------
 
 func runRandom(n int) error {
@@ -74,14 +74,14 @@ func runRandom(n int) error {
 
 	result := mergeSortedChunks(sortedChunks)
 
-	fmt.Println("\nFinal merged sorted result:")
+	fmt.Println("\nFinal sorted result:")
 	fmt.Println(result)
 
 	return nil
 }
 
 // -----------------------------
-// Mode -i (Input file)
+// -i mode logic
 // -----------------------------
 
 func runInputFile(filename string) error {
@@ -91,7 +91,7 @@ func runInputFile(filename string) error {
 	}
 
 	if len(numbers) < 10 {
-		return errors.New("fewer than 10 valid numbers in input file")
+		return errors.New("input file must contain at least 10 valid integers")
 	}
 
 	fmt.Println("Original numbers:")
@@ -109,14 +109,14 @@ func runInputFile(filename string) error {
 
 	result := mergeSortedChunks(sortedChunks)
 
-	fmt.Println("\nFinal merged sorted result:")
+	fmt.Println("\nFinal sorted result:")
 	fmt.Println(result)
 
 	return nil
 }
 
 // -----------------------------
-// Mode -d (Directory)
+// -d mode logic
 // -----------------------------
 
 func runDirectory(dir string) error {
@@ -163,7 +163,6 @@ func runDirectory(dir string) error {
 
 func splitIntoChunks(numbers []int) [][]int {
 	n := len(numbers)
-
 	numChunks := int(math.Ceil(math.Sqrt(float64(n))))
 	if numChunks < 4 {
 		numChunks = 4
@@ -174,7 +173,6 @@ func splitIntoChunks(numbers []int) [][]int {
 
 	var chunks [][]int
 	start := 0
-
 	for i := 0; i < numChunks; i++ {
 		size := base
 		if i < extra {
@@ -184,7 +182,6 @@ func splitIntoChunks(numbers []int) [][]int {
 		chunks = append(chunks, numbers[start:end])
 		start = end
 	}
-
 	return chunks
 }
 
@@ -233,7 +230,6 @@ func mergeSortedChunks(chunks [][]int) []int {
 func mergeTwo(a, b []int) []int {
 	result := make([]int, 0, len(a)+len(b))
 	i, j := 0, 0
-
 	for i < len(a) && j < len(b) {
 		if a[i] <= b[j] {
 			result = append(result, a[i])
@@ -243,7 +239,6 @@ func mergeTwo(a, b []int) []int {
 			j++
 		}
 	}
-
 	result = append(result, a[i:]...)
 	result = append(result, b[j:]...)
 	return result
@@ -257,7 +252,7 @@ func generateRandomNumbers(n int) []int {
 	rand.Seed(time.Now().UnixNano())
 	nums := make([]int, n)
 	for i := range nums {
-		nums[i] = rand.Intn(1000) // range: 0–999
+		nums[i] = rand.Intn(1000) // 0–999
 	}
 	return nums
 }
@@ -271,7 +266,6 @@ func readNumbersFromFile(filename string) ([]int, error) {
 
 	var nums []int
 	scanner := bufio.NewScanner(file)
-
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
@@ -283,7 +277,6 @@ func readNumbersFromFile(filename string) ([]int, error) {
 		}
 		nums = append(nums, val)
 	}
-
 	return nums, nil
 }
 
