@@ -26,23 +26,39 @@ import (
 
 func main() {
 	rFlag := flag.Int("r", -1, "generate N random integers (N >= 10)")
-	iFlag := flag.String("i", "", "input file")
-	dFlag := flag.String("d", "", "input directory")
+	iFlag := flag.String("i", "", "input file with integers (one per line)")
+	dFlag := flag.String("d", "", "directory with .txt files to sort")
 	flag.Parse()
 
-	switch {
-	case *rFlag != -1:
-		exitIf(runRandom(*rFlag))
-	case *iFlag != "":
-		exitIf(runInputFile(*iFlag))
-	case *dFlag != "":
-		exitIf(runDirectory(*dFlag))
-	default:
-		log.Fatal("Usage: gosort -r N | -i input.txt | -d directory")
-	}
-}
+	hasR := *rFlag != -1
+	hasI := *iFlag != ""
+	hasD := *dFlag != ""
 
-func exitIf(err error) {
+	count := 0
+	if hasR {
+		count++
+	}
+	if hasI {
+		count++
+	}
+	if hasD {
+		count++
+	}
+
+	if count != 1 {
+		log.Fatal("Usage:\n  gosort -r N\n  gosort -i input.txt\n  gosort -d directory")
+	}
+
+	var err error
+	switch {
+	case hasR:
+		err = runRandom(*rFlag)
+	case hasI:
+		err = runInputFile(*iFlag)
+	case hasD:
+		err = runDirectory(*dFlag)
+	}
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -163,6 +179,7 @@ func runDirectory(dir string) error {
 
 func splitIntoChunks(numbers []int) [][]int {
 	n := len(numbers)
+
 	numChunks := int(math.Ceil(math.Sqrt(float64(n))))
 	if numChunks < 4 {
 		numChunks = 4
@@ -173,6 +190,7 @@ func splitIntoChunks(numbers []int) [][]int {
 
 	var chunks [][]int
 	start := 0
+
 	for i := 0; i < numChunks; i++ {
 		size := base
 		if i < extra {
@@ -182,6 +200,7 @@ func splitIntoChunks(numbers []int) [][]int {
 		chunks = append(chunks, numbers[start:end])
 		start = end
 	}
+
 	return chunks
 }
 
@@ -213,6 +232,13 @@ func sortChunksConcurrently(chunks [][]int) [][]int {
 // -----------------------------
 
 func mergeSortedChunks(chunks [][]int) []int {
+	if len(chunks) == 0 {
+		return []int{}
+	}
+	if len(chunks) == 1 {
+		return chunks[0]
+	}
+
 	for len(chunks) > 1 {
 		var merged [][]int
 		for i := 0; i < len(chunks); i += 2 {
@@ -230,6 +256,7 @@ func mergeSortedChunks(chunks [][]int) []int {
 func mergeTwo(a, b []int) []int {
 	result := make([]int, 0, len(a)+len(b))
 	i, j := 0, 0
+
 	for i < len(a) && j < len(b) {
 		if a[i] <= b[j] {
 			result = append(result, a[i])
@@ -239,6 +266,7 @@ func mergeTwo(a, b []int) []int {
 			j++
 		}
 	}
+
 	result = append(result, a[i:]...)
 	result = append(result, b[j:]...)
 	return result
@@ -252,7 +280,7 @@ func generateRandomNumbers(n int) []int {
 	rand.Seed(time.Now().UnixNano())
 	nums := make([]int, n)
 	for i := range nums {
-		nums[i] = rand.Intn(1000) // 0–999
+		nums[i] = rand.Intn(1000) // range: 0–999
 	}
 	return nums
 }
@@ -266,6 +294,7 @@ func readNumbersFromFile(filename string) ([]int, error) {
 
 	var nums []int
 	scanner := bufio.NewScanner(file)
+
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
@@ -277,6 +306,7 @@ func readNumbersFromFile(filename string) ([]int, error) {
 		}
 		nums = append(nums, val)
 	}
+
 	return nums, nil
 }
 
